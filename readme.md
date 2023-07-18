@@ -112,13 +112,13 @@ Alternatively, you can use your own filesystem  - an entire directory tree can b
 First, we need to prepare the data into a format called [CAR](https://ipld.io/specs/transport/car/carv1/) (Content Addressible Archive), which is a **serialization of the DAG to be stored**
 
 There are a few ways to do this depending on the exact requirements, as a multitude of tools exist in the ecosystem. Here are some examples:
-https://github.com/anjor/go-fil-dataprep
-https://github.com/application-research/delta
-https://github.com/data-preservation-programs/singularity
-https://github.com/tech-greedy/generate-car
-https://github.com/tech-greedy/js-generate-car
-https://github.com/web3-storage/ipfs-car
-https://github.com/schreck23/ptolemy
+- https://github.com/anjor/go-fil-dataprep
+- https://github.com/application-research/delta
+- https://github.com/data-preservation-programs/singularity
+- https://github.com/tech-greedy/generate-car
+- https://github.com/tech-greedy/js-generate-car
+- https://github.com/web3-storage/ipfs-car
+- https://github.com/schreck23/ptolemy
 
 [Carfile dataprep explanation](https://github.com/filecoin-project/data-prep-tools/tree/main/docs)
 
