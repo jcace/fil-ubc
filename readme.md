@@ -217,12 +217,13 @@ You can double check that Boost sees the datacap too, by running:
 ### Finding a storage provider
 You have to know which SP you want to make a deal with. There are a couple of public indexes available. All storage providers are identified with an id in the form `f0XXXXXXX`. 
 
-One such index is at https://data.storage.market - click Providers/all 
-Another one is https://filrep.io
+Some SP indexes include
+- https://data.storage.market
+- https://filrep.io
 
 Eventually, this process will be automatic via [Spade](https://github.com/data-preservation-programs/spade)
 
-For purposes of this test, we can use a known storage provider - `f01963614`
+For purposes of this test, we will use a known storage provider - `f01963614`
 
 ### Hosting your car file
 In order to make the deal, we need to provide a way for the storage provider to download the carfile from us. Commonly, this is done over regular old HTTP or FTP.
@@ -284,7 +285,7 @@ The most advanced library for retrieving data from Filecoin is called Lassie. It
 https://github.com/filecoin-project/lassie/
 
 
-## Install
+## Using Lassie
 Download the correct one for your OS from here: [Lassie downloads page](https://github.com/filecoin-project/lassie/releases)
 
 Then, you can easily use it to fetch from Filecoin:
@@ -295,7 +296,7 @@ lassie fetch bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe
 
 > Note: The deal we just made with the network will not be retrievable yet, as it still needs to be sealed by the provider before it's announced and available. Try again after several hours and it should work!
 
-# Appendix - Ecosystem Tooling
+# Appendix - Additional Ecosystem Tools
 The Protocol Labs network is a large ecosystem of startups and teams working on tools to make Web3 more useful and accessible. Below is a sample of some tools that directly interact with IPFS and Filecoin.
 
 ## Estuary
