@@ -170,6 +170,8 @@ cd boost
 make build
 ```
 
+> Note: for Apple Silicon users: if you get an error pertaining to `missing hwloc`, follow the steps detailed [Here](https://github.com/application-research/estuary#guide-for-missing-hwloc-on-m1-macs)
+
 Make sure it works:
 ```bash
 ./boost
