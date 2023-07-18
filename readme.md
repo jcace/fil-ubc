@@ -104,7 +104,7 @@ For simplicity, we will generate some random data for testing purposes.
 dd if=/dev/random of=testfile bs=500000000 count=2
 ```
 
-This will generate a file  1GB in size (1 GiB)
+This will generate a file 1GiB in size
 
 Alternatively, you can use your own filesystem  - an entire directory tree can be prepared if you want!
 
@@ -130,10 +130,10 @@ First, Install go-fil-dataprep
 `go install github.com/anjor/go-fil-dataprep/cmd/data-prep@latest`
 
 
-Next, genereate the carfile
+Next, generate the carfile
 `data-prep fil-data-prep --output test --size 4026531840 testfile`
 
-> note, you can also provide a directory as the root to generate a carfile of the entire directory tree, for example /path/to/dir
+> Note: you can also provide a directory as the root to generate a carfile of the entire directory tree, for example /path/to/dir
 
 The Size flag is the max size of individual carfiles. The number provided is 30GiB. As the maximum deal size on Filecoin is 32GiB, this leaves plenty of room for overhead and is a safe value to use. If you are preparing content greater than 30GiB in size, they will be split between multiple .CAR files.
 
@@ -237,14 +237,14 @@ Running a file server is trivial with software like Nginx, Caddy, or even a simp
 The metadata for this carfile is as follows:
 - Piece CID: `baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq`
 - Payload (root) CID: `bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe`
-- Size: `1000085081`` bytes
+- Size: `1000085081` bytes
 
 
 ### Making the deal!
 Now, we can make the Filecoin deal. 
 
 ```bash
-./boost deal --provider f01963614 --car-size 1000085081 --piece-size 1073741824 --http-url http://10.32.32.20:2023/baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq.car --payload-cid bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe --commp baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq --storage-price 0 --verified --remove-unsealed-copy
+./boost deal --provider f01963614 --car-size 1000085081 --piece-size 1073741824 --http-url http://10.32.32.20:2023/baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq.car --payload-cid bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe --commp baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq --storage-price 0 --verified 
 ```
 
 Breaking down the flags of this request:
@@ -252,11 +252,13 @@ Breaking down the flags of this request:
 - `car-size` is taken from the raw file size (as seen on the filesystem, or https://fwscdn.estuary.tech/delta-test/)
 - `piece-size` is the *next larger power of two*, greater than the car size. This is a low-level detail of how Filecoin packs pieces into sectors, but they must all align to power-of-two sizes so that everything fits cleanly.
 - `http-url` is the URL where to download the CAR from. It must be reachable by the Storage Provider. (Note: This can also be secured and auth credentials may be passed in via `http-headers` flag)
-- `payload-cid` is the CID of the content that's being stored. This is the Root CID the DAG, and would map to the IPFS root CID.
+- `payload-cid` is the CID of the content that's being stored. This is the Root CID the DAG, and would map to the IPFS root CID of the actual content the user's interested in.
 - `commp` is the CID of the CAR file. Think of the carfile as a "container" for the data, including some additional headers. This is the CID of the container.
 - `storage-price` is the price in FIL per GiB per Epoch. Since we'll use Datacap (Fil+) for this deal, we set it to 0.
-- `verified` is a flag that indicates that we're using Datacap (Fil+) for this deal.
-- `remove-unsealed-copy` is a flag that indicates that we don't want to keep *duplicate* copy alongside the sealed data. When this flag is unspecified, the provider can serve back the file immediately when requested, at the cost of additional storage space.
+- `verified` indicates that we're using Datacap (Fil+) for this deal.
+
+Additionally, another flag to be aware of is:
+- `remove-unsealed-copy` indicates that we don't want to keep a *duplicate* copy alongside the sealed data. When this flag is unspecified, the provider can serve back the file immediately when requested, at the cost of additional storage space.
 
 
 See the result:
@@ -277,7 +279,7 @@ sent deal proposal
 The deal has been sent off to the provider, and it will soon be sealed and stored on the network!
 
 # Retrieving Data
-The most advanced library for retrieving data from Filecoin is called Lassie. It is a command-line tool that can fetch data from Filecoin, and is able to handle all the complexities of the network, including multiple transfer methods. It's available here:
+The most advanced library for retrieving data from Filecoin is called Lassie. It is a command-line tool that can fetch data from Filecoin, and is able to handle all the complexities of the network including multiple transfer methods. It's available here:
 
 https://github.com/filecoin-project/lassie/
 
@@ -291,6 +293,7 @@ Then, you can easily use it to fetch from Filecoin:
 lassie fetch bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe
 ```
 
+> Note: The deal we just made with the network will not be retrievable yet, as it still needs to be sealed by the provider before it's announced and available. Try again after several hours and it should work!
 
 # Appendix - Ecosystem Tooling
 The Protocol Labs network is a large ecosystem of startups and teams working on tools to make Web3 more useful and accessible. Below is a sample of some tools that directly interact with IPFS and Filecoin.
