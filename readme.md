@@ -29,7 +29,7 @@ First, install the reference implementation of IPFS, Kubo.
 First download from here
 [Download Links](https://dist.ipfs.tech/#kubo)
 
-Then, 
+Then once installed, set it up using the command line: 
 ```bash
 ipfs init
 ```
@@ -43,9 +43,9 @@ ipfs daemon
 
 Leave it running in the background, so we can interact with it.
 
-### Pinning a file
+### IPFS: working with a file
 
-Make a text file
+Make a text file called hello.txt
 ```text
 Hello {Your name!}
 ```
@@ -67,10 +67,10 @@ Now, we can query it back:
 ipfs cat QmaKXZPnQFnL1L42WKhfMiWYoRGEGjvB7pKF3KqxRDk599
 ```
 
-Try from a friend's computer - it should work and you can can see the same file! 
+Try from a friend's computer - it should work and you will see the same file! 
 
 #### Troubleshooting - It doesnt work
-If you can't seem to query the file back, it's likely because there file can't be found in the DHT. This is because there hasn't been enough time for the advertisements to propagate between you and your peer. We could either wait, and hope that our content gets propagates through the network, or we can simply add a direct peer so the connection is made immediately.
+If you can't seem to query the file back, it's likely because there file can't be found in the DHT. This is because there hasn't been enough time for the advertisements to propagate between you and your peer. You could wait and hope that our content gets propagates through the network, or we can simply add a direct peer so the connection is made immediately.
 
 **On the IPFS peer where data is pinned**, find your peer ID:
 ```bash
@@ -90,15 +90,12 @@ ipfs swarm connect /ip4/10.10.10.10/tcp/4001/p2p/12D3
 Re-try the `ipfs cat`, and you should be able to download the file now!
 
 ### Garbage collect the CID
-`ipfs repo gc` will force a garbage-collection, and remove the file from the repository. Do this from the first node, but leave the first node up. Try to query from a third node, and the content should still be accessible!
+`ipfs repo gc` will force a garbage-collection, and remove the file from the repository. Do this from the first node, but leave the second node up. Try to query from a third node, and the content should still be accessible!
 
 > Hint: In practice, if you want to avoid a piece of content from being garbage collected, you can run `ipfs pin add QmaKXZPnQFnL1L42WKhfMiWYoRGEGjvB7pKF3KqxRDk599` for example
 
 # Filecoin
 Making a storage deal on Filecoin requires a couple steps. 
-
-
-
 
 ## Source data
 
@@ -109,7 +106,7 @@ dd if=/dev/random of=testfile bs=500000000 count=2
 
 This will generate a file  1GB in size (1 GiB)
 
-You can totally use your own filesystem if you want - an entire directory tree can be prepared if you want!
+Alternatively, you can use your own filesystem  - an entire directory tree can be prepared if you want!
 
 ## Data Preparation
 First, we need to prepare the data into a format called [CAR](https://ipld.io/specs/transport/car/carv1/) (Content Addressible Archive), which is a **serialization of the DAG to be stored**
@@ -138,19 +135,19 @@ Next, genereate the carfile
 
 > note, you can also provide a directory as the root to generate a carfile of the entire directory tree, for example /path/to/dir
 
-The Size flag is the max size of individual carfiles. The number provided is 30GiB. As the maximum deal size on Filecoin is 32GiB, this leaves plenty of room for overhead and is a safe value to use.
+The Size flag is the max size of individual carfiles. The number provided is 30GiB. As the maximum deal size on Filecoin is 32GiB, this leaves plenty of room for overhead and is a safe value to use. If you are preparing content greater than 30GiB in size, they will be split between multiple .CAR files.
 
 This will produce a car file named after the `CID.car` of the file.
 
 ex - `test-baga6ea....car`
-Take a note of the `root cid` that's output to the terminal. This is the root CID of the data (also known as the Payload CID). The filename contains another CID (Piece CID), which is the CID of the carfiles (it also includes some headers)
+Take a note of the `root cid` that's output to the terminal. This is the root CID of the data (also known as the Payload CID). The filename contains another CID (Piece CID), which is the CID of the carfiles (the `piece CID` also accounts for some headers, hence the different ID)
 
 
 ## Making a Filecoin deal
 Now, we can make a deal with the Filecoin network.
 
 ### Prerequisites
-We need a couple pieces of software installed first for the tools we'll be using.
+We need a couple pieces of software installed first for the tools we'll be using - Rust and Go.
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -162,8 +159,6 @@ wget -c https://golang.org/dl/go1.19.7.linux-amd64.tar.gz -O - | sudo tar -xz -C
 We'll use Boost client
 [Boost Client](https://boost.filecoin.io/getting-started/boost-client), 
 Boost is an approachable way of making deals with the Filecoin network.
-
-You need `Go` and `Rust` installed first (see above).
 
 Install it - you have to build from source
 
@@ -180,7 +175,7 @@ Make sure it works:
 ./boost
 ```
 
-In order to use Boost, you have to point it to a Full Filecoin Chain RPC Node. The easiest way to do this is to point it at a public API. To do this, set the following environment variable (Glif is a reliable public node that's available for free)
+In order to use Boost, you have to point it to a Filecoin Chain RPC Node. The easiest way to do this is to point it at a public API. To do this, set the following environment variable (Glif is a reliable public node that's available for free)
 
 ```bash
 export FULLNODE_API_INFO=https://api.node.glif.io
@@ -200,7 +195,7 @@ This command will also create a Filecoin wallet - the public address of the wall
 default wallet set	{"wallet": "f3q2ac6l6wih7e3bk25mdb7stqnhvw35gfcccdn7bd65fnhebaxgvxq7av3dpjnkikrebyzkhzijdddeq7gbja"}
 ```
 
-Save this wallet address somewhere, we'll need it later.
+Save this wallet address somewhere, we'll need it later. The private keys for this wallet will be located in the `~/.boost` folder.
 
 ### Getting Datacap
 *Datacap* is like a Filecoin Token that gives your deals Fil+ (Verified) status. This allows you to make deals without any cost, as providers gain increased ROI for taking them.
@@ -231,16 +226,18 @@ For purposes of this test, we can use a known storage provider - `f01963614`
 
 ### Hosting your car file
 In order to make the deal, we need to provide a way for the storage provider to download the carfile from us. Commonly, this is done over regular old HTTP or FTP.
-> **Note** There are ways of doing with via IPFS, but for purposes of this demo, it's easier to simply transfer over HTTP. See `Delta Approach` below for more info on the IPFS approach.
+> **Note** There are ways of distributing the carfile via IPFS, but for this demo, we'll simply transfer over HTTP. See `Appendix - Ecosystem Tooling` below for more info on tools to accomplish this.
 
 Running a file server is trivial with software like Nginx, Caddy, or even a simple Nodejs/Web framework. For purposes of this demo, however (to avoid the pitfalls of trying to forward traffic through a University student firewall :) ), we'll just use a pre-computed one that I've uploaded to a local webserver. It's located at:
 
 `https://10.32.32.20:2023/baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq.car`
 
+> **Note** Clicking this link won't work as it refers to a fileserver internal to the Storage Provider network - however, the SP referenced earlier `f01963614` will be able to download it.
+
 The metadata for this carfile is as follows:
 - Piece CID: `baga6ea4seaqpu5vhfki6isgsbukjmtuap4waga57k7n4v57fao4oq3v2k2koqdq`
 - Payload (root) CID: `bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe`
-- Size: 1000085081 bytes
+- Size: `1000085081`` bytes
 
 
 ### Making the deal!
@@ -280,10 +277,12 @@ sent deal proposal
 The deal has been sent off to the provider, and it will soon be sealed and stored on the network!
 
 # Retrieving Data
+The most advanced library for retrieving data from Filecoin is called Lassie. It is a command-line tool that can fetch data from Filecoin, and is able to handle all the complexities of the network, including multiple transfer methods. It's available here:
+
 https://github.com/filecoin-project/lassie/
 
 
-## Install and build
+## Install
 Download the correct one for your OS from here: [Lassie downloads page](https://github.com/filecoin-project/lassie/releases)
 
 Then, you can easily use it to fetch from Filecoin:
@@ -293,22 +292,30 @@ lassie fetch bafybeiecfinwq6zoy7hrwhjvnqiba3k4an452z6hrz37p7rnlvamlpvhxe
 ```
 
 
-# Delta Approach
+# Appendix - Ecosystem Tooling
+The Protocol Labs network is a large ecosystem of startups and teams working on tools to make Web3 more useful and accessible. Below is a sample of some tools that directly interact with IPFS and Filecoin.
 
-Download and install
+## Estuary
+https://estuary.tech/
+Estuary is a user-facing platform that allows easy developer access to IPFS and Filecoin. After receiving an API key, developers can make simple HTTP requests to upload data to Estuary, which will pin the content on IPFS and make deals with storage providers in the backend. It has a set of APIs in addition to a web interface for easy, drag-and-drop functionality.
 
-Set up a .env file
+## Delta
+https://github.com/application-research/delta 
+Delta is a Filecoin Storage Deal Making service that runs an IPFS node in addition to Filecoin code, and makes it easy for files to be uploaded via HTTP, pinned on IPFS, and have deals made through Filecoin. It uses libp2p to directly transfer the raw data over to the storage providers when deals are made. 
 
+## Singularity
+https://github.com/data-preservation-programs/singularity
+Singularity is an all-in-one tool that facilitates large dataset onboarding to the Filecoin network. It contains modules to ingest data from many different sources, generate carfiles with high throughput via an orchestrator-worker model, and make deals with the Filecoin network. It also has a web interface for monitoring the process.
 
-```bash
-./delta daemon --mode standalone
-```
+## Web3.storage
+https://web3.storage/
+web3.storage is a suite of APIs and services that make it easy for developers and other users to interact with data in a way that is not tied to where the data is actually physically stored. It natively uses decentralized data and identity protocols like IPFS, Filecoin, and UCAN that enable verifiable, data- and user-centric application architectures and workflows.
 
+## nft.storage
+https://nft.storage/
+NFT.Storage is a long-term storage service designed for off-chain NFT data (like metadata, images, and other assets) for up to 31GiB in size per individual upload. Data is content addressed using IPFS, meaning the URI pointing to a piece of data (“ipfs://…”) is completely unique to that data (using a content identifier, or CID). IPFS URLs and CIDs can be used in NFTs and metadata to ensure the NFT forever actually refers to the intended data (eliminating things like rug pulls, and making it trustlessly verifiable what content an NFT is associated with).
 
-Then make the deal,
-```bash
-curl --location --request POST 'http://localhost:1414/api/v1/deal/end-to-end' \
---header 'Authorization: Bearer ESTc978971e-05a3-475b-ba13-7081317ddef6ARY' \
---form 'data=@"/Users/jc/Dev/TEMP/car-gen/testfile"' \
---form 'metadata="{\"miner\": \"f01963614\",\"connection_mode\": \"e2e\",\"wallet\": {\"address\":\"f3q2ac6l6wih7e3bk25mdb7stqnhvw35gfcccdn7bd65fnhebaxgvxq7av3dpjnkikrebyzkhzijdddeq7gbja\"}}"'
-```
+## Fleek
+https://Fleek.co/
+Fleek makes it easy to build websites and apps on the new open web: permissionless, trustless, censorship resistant, and free of centralized gatekeepers.
+
